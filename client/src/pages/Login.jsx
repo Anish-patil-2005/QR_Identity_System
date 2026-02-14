@@ -1,0 +1,141 @@
+/* eslint-disable no-unused-vars */
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, Loader2, LogIn, ArrowLeft, GraduationCap } from 'lucide-react';
+import api from '../services/api';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { token, role, is_first_login } = response.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+
+      if (is_first_login) {
+        // Force password change for initial system-generated passwords
+        navigate('/change-password?mode=initial');
+      } else {
+        // Route based on verified role
+        navigate(role === 'admin' ? '/admin/dashboard' : '/faculty/profile');
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Invalid Institutional Credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f4f7f9] font-sans flex flex-col">
+      
+      {/* --- REUSABLE INSTITUTIONAL HEADER --- */}
+      <div className="bg-white border-b-4 border-red-700 px-6 py-4 shadow-sm flex flex-col md:flex-row justify-between items-center z-50">
+        <div className="flex items-center gap-4">
+          <div className="bg-red-700 text-white p-2 font-bold text-xl rounded shadow-sm">VI</div>
+          <div className="h-10 w-px bg-slate-200 mx-2 hidden md:block"></div>
+          <div className="text-left">
+            <h1 className="text-lg font-bold text-blue-900 leading-tight">
+              Bansilal Ramanath Agrawal Charitable Trust
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">
+              Vishwakarma Institute of Technology
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <button 
+            onClick={() => navigate('/')} 
+            className="flex items-center gap-2 text-slate-500 hover:text-red-700 font-bold text-xs uppercase transition-colors"
+          >
+            <ArrowLeft size={16} /> Back to Portal
+          </button>
+        </div>
+      </div>
+
+      {/* --- LOGIN CARD SECTION --- */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white border border-slate-200 shadow-xl overflow-hidden rounded-none">
+          
+          {/* Header Section */}
+          <div className="bg-blue-900 p-8 text-center border-b-4 border-red-700">
+            <GraduationCap className="mx-auto text-white mb-3" size={50} />
+            <h2 className="text-xl font-serif font-bold text-white uppercase tracking-widest">Faculty Login</h2>
+            <p className="text-slate-300 text-[10px] mt-2 uppercase font-black tracking-[0.2em]">
+              Authorized Access Only
+            </p>
+          </div>
+          
+          {/* Form Section */}
+          <form onSubmit={handleLogin} className="p-10 space-y-8">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Official Email Address</label>
+              <div className="relative border-b-2 border-slate-100 focus-within:border-red-700 transition-colors py-1">
+                <Mail className="absolute left-1 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                <input 
+                  type="email" 
+                  required
+                  className="w-full pl-8 py-2 bg-transparent text-sm outline-none font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-300"
+                  placeholder="name@vit.edu"
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Secure Password</label>
+              <div className="relative border-b-2 border-slate-100 focus-within:border-red-700 transition-colors py-1">
+                <Lock className="absolute left-1 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                <input 
+                  type="password" 
+                  required
+                  className="w-full pl-8 py-2 bg-transparent text-sm outline-none font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-300"
+                  placeholder="••••••••"
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full bg-red-700 text-white font-bold py-4 uppercase tracking-[0.15em] text-xs shadow-lg shadow-red-900/20 hover:bg-red-800 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <>
+                  <LogIn size={16} /> 
+                  Verify & Enter
+                </>
+              )}
+            </button>
+
+            <div className="pt-4 text-center">
+              <p className="text-[9px] text-slate-400 uppercase font-bold leading-relaxed">
+                By signing in, you adhere to the IT usage policy of the Bansilal Ramanath Agrawal Charitable Trust.
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* --- FOOTER --- */}
+      <div className="p-4 text-center border-t border-slate-200 bg-white">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+          &copy; 2026 Bansilal Ramanath Agrawal Charitable Trust &bull; Digital Identity Division
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
