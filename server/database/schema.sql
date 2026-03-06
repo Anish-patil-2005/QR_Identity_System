@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS faculty (
     google_scholar VARCHAR(255),
     profile_photo_url TEXT,
     research JSONB DEFAULT '{}'::jsonb,
+    -- user_id (id) as foreign key contraint availble in db
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
